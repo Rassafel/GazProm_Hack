@@ -1,0 +1,98 @@
+create table users
+(
+    id integer primary key
+);
+
+create table paths
+(
+    id           integer REFERENCES users (id),
+    timeInterval timestamp,
+    lat          float,
+    lon          float,
+    distance     float
+);
+
+create table banks
+(
+    id            integer PRIMARY KEY,
+    lat           float,
+    lon           float,
+    region        text,
+    regionType    text,
+    setlementType text,
+    setlement     text,
+    fullAddress   text,
+    location      text,
+    replaced      boolean
+);
+
+create table bankStats
+(
+    id           integer REFERENCES banks (id),
+    timeInterval timestamp,
+    countUsers   integer,
+    minUsers     integer,
+    maxUsers     integer
+);
+
+CREATE SEQUENCE building_id_seq;
+
+create table buildings
+(
+    id   integer not null default nextval('building_id_seq') PRIMARY KEY,
+    lat  float,
+    lon  float,
+    name text,
+    address text,
+    type text,
+    priority smallint
+);
+
+delete from users where true;
+delete from paths where true;
+delete from banks where true;
+delete from bankstats where true;
+delete from buildings where true;
+
+
+
+
+create or replace function calculateDistance(lat1 float, lat2 float, lon1 float, lon2 float) returns float
+    language plpgsql as
+$$
+declare
+    distance       float;
+    declare tempor double precision;
+begin
+    select pow(sin(radians(lon2 - lon1) / 2), 2) * cos(radians(lat2)) * cos(radians(lat1)) +
+           pow(sin(radians(lat2 - lat1) / 2), 2)
+    into tempor;
+    select 2 * atan2(sqrt(tempor), sqrt(1 - tempor)) * 6372795 into distance;
+    return distance;
+end;
+$$;
+
+-- Creating avg statistics table of banks
+create table avg_banks_stats
+(
+    id            integer primary key,
+    all_users     integer,
+    avg_min_users double precision,
+    avg_max_users double precision
+);
+create table min_atm_used
+(
+    id          integer primary key,
+    load_factor double precision
+);
+create table middle_atm_used
+(
+    id          integer primary key,
+    load_factor double precision
+);
+create table max_atm_used
+(
+    id          integer primary key,
+    load_factor double precision
+);
+
