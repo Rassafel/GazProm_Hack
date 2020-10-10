@@ -10,9 +10,9 @@ public class WriteBuilding extends WriteProcessToDB<Building> {
 
     private static final Logger LOG = Logger.getLogger(WriteBuilding.class.getName());
 
-    private static final String SELECT = "";
+    private static final String SELECT = "select id from buildings where lat=? and lon=?;";
     private static final String INSERT = "insert into buildings (lat,lon,name,address,type,priority) values(?,?,?,?,?,?);";
-    private static final String UPDATE = "";
+    private static final String UPDATE = "update buildings set(name,address,type,priority) = (?,?,?,?) where lat=? and lon=?;";
 
     public WriteBuilding(String url, String username, String password) {
         super(url, username, password);
@@ -25,11 +25,22 @@ public class WriteBuilding extends WriteProcessToDB<Building> {
 
     @Override
     protected boolean select(Building data) throws SQLException {
-        return false;
+        PreparedStatement statement = connection.prepareStatement(SELECT);
+        statement.setDouble(1, data.getGeoData().getLat());
+        statement.setDouble(2, data.getGeoData().getLon());
+        return statement.executeQuery().next();
     }
 
     @Override
     protected void update(Building data) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(UPDATE);
+        statement.setString(1, data.getName());
+        statement.setString(2, data.getAddress());
+        statement.setString(3, data.getType());
+        statement.setShort(4, data.getPriority());
+        statement.setDouble(5, data.getGeoData().getLat());
+        statement.setDouble(6, data.getGeoData().getLon());
+        statement.executeUpdate();
     }
 
     @Override
